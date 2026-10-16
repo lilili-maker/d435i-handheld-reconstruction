@@ -1,0 +1,186 @@
+{
+  "app_name": "D435i Handheld Reconstruction",
+  "scope": "Handheld RGB-D odometry, validated pose graph and TSDF furniture reconstruction",
+  "accuracy": "Experimental; drift, distortion and incomplete surfaces are possible. No measured accuracy bound.",
+  "algorithm_copy_policy": "Python files copied byte-for-byte without algorithm modifications",
+  "excluded": [
+    "data",
+    "output",
+    ".venv",
+    ".venv-gpu",
+    "robot",
+    "turntable",
+    "3dsvg_studio",
+    "historical_models"
+  ],
+  "files": {
+    ".gitattributes": {
+      "size_bytes": 128,
+      "sha256": "ba536e31915bf05ba06d68435ce0af266b08b22417cd2071d174746ea4346d71"
+    },
+    ".github/workflows/tests.yml": {
+      "size_bytes": 1255,
+      "sha256": "3a0384a06cab8a39b1d563a0b2802236e8f53fbba10c4fd8029ca1392095951a"
+    },
+    ".gitignore": {
+      "size_bytes": 158,
+      "sha256": "cfc9c69417f10fbbc9d9e1fcfe1679a1dd453e0d8787cebacf66609a924fa602"
+    },
+    "CONTRIBUTING.md": {
+      "size_bytes": 1039,
+      "sha256": "3582f5d048f15b56327601af5910d170b472c9046494d6a262c5f4e74b047dfa"
+    },
+    "docs/LIMITATIONS.md": {
+      "size_bytes": 2575,
+      "sha256": "f42c1d32803e14a1375e5369380b8b229fe22349080bb517b232908a7c0bbf97"
+    },
+    "docs/SCANNING_GUIDE.md": {
+      "size_bytes": 1506,
+      "sha256": "17e6631cbd390a88863fc0504089d117c0cbb402beacb58894e1409328bc3bf0"
+    },
+    "docs/VALIDATION.md": {
+      "size_bytes": 2242,
+      "sha256": "546fd5416d40bde4da7831f4a2ec26697d65f234c9a039bb56372dcd0f857a8e"
+    },
+    "README.md": {
+      "size_bytes": 11088,
+      "sha256": "8dff3afc69276f92211a4558ebe3d9006a702e71537ea2e082fe9a7fe5f4289d"
+    },
+    "requirements.txt": {
+      "size_bytes": 373,
+      "sha256": "6a5608150596461954a97230fb3984817779bca5fb246b180f492749fc362101"
+    },
+    "run_handheld_reconstruction.py": {
+      "size_bytes": 16371,
+      "sha256": "afe70d0a42ea1196c3f6427e401abc734c2f20feaf223677cb4f45abb4297f84"
+    },
+    "run_pipeline.py": {
+      "size_bytes": 33951,
+      "sha256": "386ac6e47f3e905ba5e8a24e9b7976f847d794b4a13c2b81768337436c0dcd5b"
+    },
+    "scripts/build_handheld_release.py": {
+      "size_bytes": 4962,
+      "sha256": "69bad0b162defa74f2e3ffde7ee52890fb58db00e9356508bd94dd465c2e61d6"
+    },
+    "scripts/create_synthetic_demo.py": {
+      "size_bytes": 1422,
+      "sha256": "6502b2e812a27e64b1cabcf8d7bca3f484f0e80aa26c3fda9ddc2b1048439475"
+    },
+    "src/01_test_camera.py": {
+      "size_bytes": 5461,
+      "sha256": "2973b1b0f554264ec54c08f44fc03aff50f0fede6d81951171e5ebc2fa815510"
+    },
+    "src/02_record_data.py": {
+      "size_bytes": 10594,
+      "sha256": "8b93f3b112a9ba7dd2b4a94ba502c59f53a3b4cdf1eb8b6de5cd32de3535fe31"
+    },
+    "src/03_extract_rgbd.py": {
+      "size_bytes": 11450,
+      "sha256": "ebae637ea400de13a8bdb0aa614a6a1733f33c8b56aceda41b0d4fc4e2a2da98"
+    },
+    "src/04_single_frame_pointcloud.py": {
+      "size_bytes": 9476,
+      "sha256": "bce78598500c619f972e70af00aca6be282e1f5e5f183a113bcd33dbeb512b34"
+    },
+    "src/05_rgbd_odometry.py": {
+      "size_bytes": 24206,
+      "sha256": "41c47c729b114560df0caa1e3c698d2c56f9dccdc4820fdb6df9aff0a26fb8b8"
+    },
+    "src/reconstruction/__init__.py": {
+      "size_bytes": 97,
+      "sha256": "ee671dab5c272b58a7023419dd05e3703543622fbfe9b15c968e01d82247d801"
+    },
+    "src/reconstruction/analyze_handheld_dataset.py": {
+      "size_bytes": 7440,
+      "sha256": "6deae929634f2d740a08b1cc6bfa8395c0c016021d31c95aaa27b9d7a0143699"
+    },
+    "src/reconstruction/clean_mesh.py": {
+      "size_bytes": 21322,
+      "sha256": "84f81474e528907c1d88e849eb173bcc7b16ca8014655573cd0cdc41206ab4e1"
+    },
+    "src/reconstruction/compute_device.py": {
+      "size_bytes": 974,
+      "sha256": "590f547597c99deba2d75a99e0222e8c7086d28ad3a17df3263116e3c44d697d"
+    },
+    "src/reconstruction/convert_odometry_poses.py": {
+      "size_bytes": 10959,
+      "sha256": "8430bbb1574de1f18eb7228085f3ef66cc284706ac95b4c4754247a7249948ee"
+    },
+    "src/reconstruction/handheld_odometry.py": {
+      "size_bytes": 20647,
+      "sha256": "0426adb9a6b94fa10a493dbe52870bdc210025d4541990a4dedc1979bc2ed584"
+    },
+    "src/reconstruction/handheld_pose_graph.py": {
+      "size_bytes": 14802,
+      "sha256": "e6345797053985f7ad46e69fa9094099270bda9d6591222ece3eacfe60def64c"
+    },
+    "src/reconstruction/merge_pointclouds.py": {
+      "size_bytes": 21339,
+      "sha256": "e83ce31b0acbe4ac84ec067796a787f5cf38fdb6bf5b2e2d87bf161cf2f59015"
+    },
+    "src/reconstruction/mesh_to_svg.py": {
+      "size_bytes": 20381,
+      "sha256": "73bf78722155d83c82789f8990038faf6f79c3f633b18398bdd160ad86e0ca3c"
+    },
+    "src/reconstruction/pose_io.py": {
+      "size_bytes": 7725,
+      "sha256": "af144d9bee42794e6992d61dd0ad9f61e498d1d34eee1a762d0c7bb072a3cf13"
+    },
+    "src/reconstruction/pose_utils.py": {
+      "size_bytes": 4413,
+      "sha256": "620851c079329f0d88ae6ab2fae456c67c4e5490ef97c90e19b2fb79e4328473"
+    },
+    "src/reconstruction/tsdf_reconstruction.py": {
+      "size_bytes": 20121,
+      "sha256": "4c4d23316e17ac094ae3bdfa800343e8acfdfa4b9a3e6938635883f6596ef15d"
+    },
+    "tests/rgbd_synthetic_scene.py": {
+      "size_bytes": 3963,
+      "sha256": "222e88fe7a4d3d4a6346eea76ffa65da2d2789f31d046334eb948d60497bf55e"
+    },
+    "tests/test_clean_mesh.py": {
+      "size_bytes": 9011,
+      "sha256": "a071ce11ebd9b3c4c35e20d26105fccb2b7e6290b75134acc6bb4c5c4268a083"
+    },
+    "tests/test_handheld_reconstruction.py": {
+      "size_bytes": 13939,
+      "sha256": "0107adfe67142c6dc47f166b74d012a720e3612d5bf2b6f5ca6c740a5f866b73"
+    },
+    "tests/test_handheld_recovery.py": {
+      "size_bytes": 12433,
+      "sha256": "46aacc798ae48e5f147d8e635cfb34301b322f2a9e271bfd664eaa67b0e780ae"
+    },
+    "tests/test_handheld_release.py": {
+      "size_bytes": 2993,
+      "sha256": "8e0330e8dbca9bcf6923fc96a053e0d0c46784eedcef30177e5ad823dbf72e22"
+    },
+    "tests/test_merge_pointclouds.py": {
+      "size_bytes": 8670,
+      "sha256": "1f3362fcb2b8355892b70f7d99bd54304f7a52b93a414667f28e84773c220949"
+    },
+    "tests/test_mesh_to_svg.py": {
+      "size_bytes": 10207,
+      "sha256": "f9e77fb57decfbe1b59f9909ff43c9826cabec0141393c57bc31629936952e7e"
+    },
+    "tests/test_pipeline.py": {
+      "size_bytes": 13193,
+      "sha256": "36fc115cdc698c112c1c06537ebfa8de2f78c9e742b61d36d6237db9146f8beb"
+    },
+    "tests/test_pose_interface.py": {
+      "size_bytes": 11977,
+      "sha256": "6cde79aa58b8249f2858f9394d05369108bbc810231145f1b3351bb21db36ba3"
+    },
+    "tests/test_rgbd_direction_and_fusion.py": {
+      "size_bytes": 6958,
+      "sha256": "b49772da737b3d89784aa1b1b73450364797e344e0e3e47c2254401d0c65db62"
+    },
+    "tests/test_rgbd_odometry.py": {
+      "size_bytes": 7217,
+      "sha256": "762e4962a47ee008cc884a5a6a152e8673970cf0caee308be186081f17c6b946"
+    },
+    "tests/test_tsdf_reconstruction.py": {
+      "size_bytes": 9087,
+      "sha256": "f2a573898642416b6a2eb3df11e273ced295d517fb5e7ff5c4091616c51bf329"
+    }
+  }
+}

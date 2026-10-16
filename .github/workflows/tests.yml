@@ -1,0 +1,38 @@
+name: Offline reconstruction tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  PYTHONUTF8: '1'
+  PYTHONIOENCODING: utf-8
+  OMP_NUM_THREADS: '4'
+  OPENBLAS_NUM_THREADS: '4'
+  MPLBACKEND: Agg
+jobs:
+  offline:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Offline unit and synthetic algorithm tests
+        run: python -m unittest discover -s tests -v
+      - name: Generate known synthetic RGB-D inputs
+        run: python scripts/create_synthetic_demo.py --output output/ci_inputs
+      - name: Run actual handheld pipeline on synthetic inputs
+        run: >-
+          python run_handheld_reconstruction.py
+          --dataset output/ci_inputs/synthetic_dataset
+          --start 0 --end 2 --step 1 --reference 0
+          --odometry-backend legacy --device CPU:0 --min-consistency 0.6
+          --min-loop-gap 50 --max-loop-candidates 0 --cpu-threads 4
+          --no-crop --output output/ci_handheld

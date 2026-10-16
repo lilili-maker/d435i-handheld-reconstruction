@@ -1,0 +1,4 @@
+# 保留源码及数据格式示例的字节，避免克隆后SHA-256受换行转换影响。
+* -text
+*.png binary
+*.ply binary
