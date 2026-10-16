@@ -1,4 +1,4 @@
-"""转换阶段 4A 的真实 CSV 字段到统一位姿 JSON；不估计新位姿、不修改输入。"""
+"""将 RGB-D Odometry 导出的 CSV 轨迹转换为统一位姿 JSON；不估计新位姿、不修改输入。"""
 
 import argparse
 import csv
@@ -36,14 +36,14 @@ def _finite_number(value, field, line):
 
 
 def read_odometry_csv(input_path):
-    """只接受已核对的阶段 4A 格式；不根据文件名或 pose_source 猜方向。"""
+    """只接受已核对的 RGB-D Odometry CSV 格式；不根据文件名或 pose_source 猜方向。"""
     with Path(input_path).open(encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f)
         fields = reader.fieldnames or []
         if len(fields) != len(set(fields)) or set(fields) != set(CSV_FIELDS):
             missing = sorted(set(CSV_FIELDS) - set(fields))
             unknown = sorted(set(fields) - set(CSV_FIELDS))
-            raise ValueError(f"CSV 字段与阶段 4A 格式不符：缺少={missing}，未知={unknown}，"
+            raise ValueError(f"CSV 字段与 RGB-D Odometry 导出格式不符：缺少={missing}，未知={unknown}，"
                              f"重复字段={len(fields) != len(set(fields))}；无法确定约定，不转换。")
         rows = list(reader)
     if not rows:
@@ -75,7 +75,7 @@ def read_odometry_csv(input_path):
             raise ValueError(f"CSV 第 {line} 行未知 status={status!r}，不推断有效性。")
         valid = status in ("reference", "estimated")
         if segment_stopped and valid:
-            raise ValueError(f"CSV 第 {line} 行在轨迹失败/停止后出现有效位姿，与阶段 4A 的停止约定矛盾。")
+            raise ValueError(f"CSV 第 {line} 行在轨迹失败/停止后出现有效位姿，与轨迹估计失败后停止的约定矛盾。")
         matrix = None
         if valid:
             values = [_finite_number(row[key], key, line) for key in MATRIX_FIELDS]
@@ -152,7 +152,7 @@ def convert_odometry_poses(input_path, output_path, *, dataset=None):
         "legacy_world_frame": world_id,
         "world_definition": f"Temporary World is the original camera coordinate frame of frame {world_id}",
         "conversion": "c2w_ij copied to T_world_camera; timestamps converted ms to s; no inversion or re-estimation",
-        "legacy_translation_unit_evidence": "x_m/y_m/z_m and stage 4A save_trajectory use meters",
+        "legacy_translation_unit_evidence": "x_m/y_m/z_m and src/05_rgbd_odometry.py save_trajectory use meters",
         "dataset": str(Path(dataset).resolve()) if dataset is not None else None,
     })
     loaded = load_poses(output_path)
@@ -175,7 +175,7 @@ def convert_odometry_poses(input_path, output_path, *, dataset=None):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="将已确认 camera-to-world 的阶段 4A CSV 转为统一相机位姿 JSON")
+    parser = argparse.ArgumentParser(description="将已确认 camera-to-world 的 RGB-D Odometry CSV 转为统一相机位姿 JSON")
     parser.add_argument("--input", type=Path, default=ROOT / "output/odometry/trajectory_500_550.csv")
     parser.add_argument("--output", type=Path, default=ROOT / "output/poses/trajectory_500_550.json")
     parser.add_argument("--dataset", type=Path, help="可选：检查位姿与 RGB-D 文件编号及时间戳对应")

@@ -1,4 +1,4 @@
-"""阶段 1：检测 RealSense 相机并实时显示 RGB 和对齐后的 Depth。"""
+"""相机检查：检测 RealSense 并实时显示 RGB 和对齐后的 Depth。"""
 
 import time
 

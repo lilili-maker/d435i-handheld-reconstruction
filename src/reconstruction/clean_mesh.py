@@ -1,4 +1,4 @@
-"""阶段 5A：显式手动 AABB 三角形筛选与可选 Mesh 清理，不识别目标。"""
+"""Mesh 处理：显式手动 AABB 三角形筛选与可选清理，不自动识别目标。"""
 
 import argparse
 import hashlib
@@ -59,7 +59,7 @@ def component_stats(mesh):
 
 
 def inspect_mesh(mesh, area_epsilon=0.0):
-    """只读检查；组件 ID 只对当前检查阶段有效，完整列表保存在报告。"""
+    """只读检查；组件 ID 只对本次检查有效，完整列表保存在报告。"""
     validate_mesh(mesh)
     faces = np.asarray(mesh.triangles)
     degenerate, repeated, areas = degenerate_mask(mesh, area_epsilon)
@@ -77,7 +77,7 @@ def inspect_mesh(mesh, area_epsilon=0.0):
             "duplicate_triangles_same_orientation": duplicate_count,
             "unreferenced_vertices": len(mesh.vertices) - len(np.unique(faces)),
             "connected_component_count": len(components), "components": components,
-            "component_definition": "Triangles connected via shared edges; IDs refer only to this inspection stage"}
+            "component_definition": "Triangles connected via shared edges; IDs refer only to this inspection result"}
 
 
 def validate_crop_config(config):

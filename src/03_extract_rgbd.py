@@ -1,4 +1,4 @@
-"""阶段 2B：将 RealSense .db3 提取为对齐的 RGB-D PNG 数据集。"""
+"""RGB-D 提取：将 RealSense .db3 转为对齐的 PNG 数据集、内参与时间戳。"""
 
 import argparse
 import csv
@@ -75,7 +75,7 @@ def main(input_path=DEFAULT_INPUT, output_dir=DEFAULT_OUTPUT):
         pipeline = rs.pipeline()
         config = rs.config()
         config.enable_device_from_file(str(input_path), repeat_playback=False)
-        # 仅回放视频流；IMU 保留在原始录制文件中，本阶段不提取。
+        # 仅回放视频流；IMU 保留在原始录制文件中，图像提取不读取 IMU。
         config.enable_stream(rs.stream.color, 0, 0, rs.format.bgr8, 0)
         config.enable_stream(rs.stream.depth, 0, 0, rs.format.z16, 0)
         resolved_profile = config.resolve(rs.pipeline_wrapper(pipeline))

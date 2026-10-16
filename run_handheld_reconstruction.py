@@ -1,4 +1,4 @@
-"""阶段8：严格验证的长序列轨迹、Pose Graph 和现有家具重建 Pipeline。"""
+"""手持 RGB-D 完整离线重建：输入检查、轨迹估计、Pose Graph、融合与模型报告。"""
 
 import argparse
 import json

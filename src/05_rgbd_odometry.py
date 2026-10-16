@@ -1,4 +1,4 @@
-"""阶段 4A：Hybrid RGB-D Odometry；不融合点云、不做全局优化。
+"""基础 Hybrid RGB-D Odometry：估计帧间运动与相机轨迹，不在此融合点云或优化轨迹。
 
 约定：T_source_to_target 将 source 相机坐标中的点变到 target 相机坐标。
 C_i 是 camera-to-world，world 固定为起始相机坐标：C_t = C_s @ inv(T_s_to_t)。
@@ -24,7 +24,7 @@ LOG = logging.getLogger("rgbd_odometry")
 
 
 def load_metadata(dataset):
-    # 复用阶段 3 对项目真实 JSON 字段、深度单位和对齐标记的验证。
+    # 复用单帧点云加载器对 JSON 字段、深度单位和对齐标记的验证。
     path = Path(__file__).with_name("04_single_frame_pointcloud.py")
     spec = importlib.util.spec_from_file_location("single_frame_loader", path)
     module = importlib.util.module_from_spec(spec)
@@ -319,7 +319,7 @@ def run_trajectory(ids, timestamps, metadata, intrinsic, args):
 
 
 def parse_args(argv=None):
-    parser = argparse.ArgumentParser(description="阶段 4A：两帧 RGB-D Odometry 或连续 camera-to-world 轨迹")
+    parser = argparse.ArgumentParser(description="基础 RGB-D Odometry：两帧相对运动或连续 camera-to-world 轨迹")
     parser.add_argument("--dataset", type=Path, default=ROOT / "data/extracted_scan_02")
     parser.add_argument("--output", type=Path, default=ROOT / "output/odometry", help="结果目录，已有同名结果不覆盖")
     parser.add_argument("--source", type=int)

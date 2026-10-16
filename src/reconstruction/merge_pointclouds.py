@@ -1,4 +1,4 @@
-"""阶段 4C：根据统一 T_world_camera 逐帧融合彩色点云，无位姿优化。"""
+"""点云融合：根据统一 T_world_camera 逐帧融合彩色点云，不改变输入位姿。"""
 
 import argparse
 from contextlib import redirect_stdout
@@ -29,7 +29,7 @@ PALETTE = [[1, .15, .15], [.15, .8, .2], [.15, .35, 1], [1, .65, .1], [.8, .2, 1
 
 
 def single_frame_module():
-    """加载原有阶段 3 函数，不修改原程序或复制其 RGB-D 算法。"""
+    """复用单帧点云加载函数，不复制 RGB-D 处理算法。"""
     spec = importlib.util.spec_from_file_location("single_frame_merge", ROOT / "src/04_single_frame_pointcloud.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

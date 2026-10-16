@@ -1,4 +1,4 @@
-"""阶段 2A：录制原始 Color、Depth 和可用的 IMU 数据到 .db3。"""
+"""RGB-D 录制：保存原始 Color、Depth 和可用的 IMU 数据到 .db3。"""
 
 import argparse
 from pathlib import Path
@@ -25,7 +25,7 @@ def select_motion_profiles(device):
             if not candidates:
                 print(f"提示：设备没有可用的 {stream} profile，仅录制 Color / Depth。")
                 return []
-            # 优先较低的有效帧率，减少本阶段录制的数据量。
+            # 优先较低的有效帧率，减少 IMU 录制的数据量。
             profile = min(candidates, key=lambda p: p.fps())
             selected.append(profile)
             print(f"IMU 候选配置：{profile}")
@@ -68,7 +68,7 @@ def main(output_path=DEFAULT_OUTPUT):
 
     try:
         if output_path.suffix.lower() != ".db3":
-            print("错误：本阶段仅支持 .db3 输出文件。")
+            print("错误：录制仅支持 .db3 输出文件。")
             return 1
         # 防止再次运行时覆盖已经录好的原始数据。
         # 共享的 data/raw 可以存在；同名录制目录和 SQLite 附属文件不能复用。

@@ -199,11 +199,11 @@ def inspect_inputs(cfg: dict) -> tuple[dict, dict]:
 def assert_input_hashes(manifest: dict):
     for path, expected in manifest.items():
         if not Path(path).is_file() or sha256(Path(path)) != expected["sha256"]:
-            raise ValueError(f"输入文件在运行中变化，停止并禁止复用当前阶段：{path}")
+            raise ValueError(f"输入文件在运行中变化，停止并禁止复用当前处理结果：{path}")
 
 
 def execute_algorithm(stage: int, cfg: dict, run: Path, mesh_input: Path | None) -> list[Path]:
-    """参数适配层；算法全部调用现有模块。返回属于本阶段的新产物。"""
+    """参数适配层；算法全部调用现有模块。返回当前处理环节的新产物。"""
     common = ["--dataset", cfg["dataset_path"], "--poses", cfg["camera_poses_path"],
               "--start", str(cfg["start_frame"]), "--end", str(cfg["end_frame"]), "--step", str(cfg["frame_step"]),
               "--min-depth", str(cfg["min_depth"]), "--max-depth", str(cfg["max_depth"])]
@@ -248,7 +248,7 @@ def execute_algorithm(stage: int, cfg: dict, run: Path, mesh_input: Path | None)
         if report["failed_slice_count"] or report.get("preview_failure_reason"):
             raise ValueError("SVG/预览生成失败，具体原因见 slices/slicing_report.json。")
         return sorted((run / "slices").iterdir())
-    raise ValueError(f"未知算法阶段：{stage}")
+    raise ValueError(f"未知工作流操作：{stage}")
 
 
 def mesh_stats(path: Path, *, require_colors: bool = False) -> dict:
@@ -317,7 +317,7 @@ def validate_outputs(stage: int, cfg: dict, run: Path, mesh_input: Path | None) 
         return {**actual, "total_slice_count": len(positions), "valid_slice_count": len(positions) - actual["empty_slice_count"],
                 "path": str(run / "slices"), "millimeter_units_and_actual_geometry_verified": True,
                 "watertight": report["watertight"]}
-    raise ValueError("未知输出检查阶段。")
+    raise ValueError("未知输出检查操作。")
 
 
 def fingerprint(stage: int, cfg: dict, inputs: dict, manifest: dict, mesh_input: Path | None) -> tuple[str, dict]:
@@ -351,7 +351,7 @@ def output_manifest(run: Path, paths: list[Path]) -> dict:
     for path in paths:
         path = path.resolve()
         if not path.is_relative_to(run.resolve()) or not path.is_file():
-            raise ValueError(f"阶段输出必须是本次运行目录中的实际文件：{path}")
+            raise ValueError(f"输出必须是本次运行目录中的实际文件：{path}")
         result[path.relative_to(run).as_posix()] = {"sha256": sha256(path), "bytes": path.stat().st_size}
     return result
 
@@ -407,20 +407,20 @@ def cache_checkpoint(source: Path | None, stage: int, expected_fingerprint: str)
     try:
         checkpoint = read_json(source / "reports" / f"stage_{stage}_checkpoint.json")
         if checkpoint["status"] not in ("complete", "reused"):
-            return None, "旧阶段未成功完成"
+            return None, "旧处理未成功完成"
         if checkpoint["configuration_sha256"] != sha256(source / "pipeline_config.json"):
             return None, "旧运行保存的配置文件已变化"
         if checkpoint["fingerprint"] != expected_fingerprint:
-            return None, "阶段参数、输入或代码/环境校验变化"
+            return None, "处理参数、输入或代码/环境校验变化"
         if not checkpoint["artifacts"]:
-            return None, "旧阶段没有产物校验清单"
+            return None, "旧处理没有产物校验清单"
         for relative, expected in checkpoint["artifacts"].items():
             if Path(relative).is_absolute() or ".." in Path(relative).parts:
                 return None, "旧产物路径不是规范的运行目录相对路径"
             file = (source / relative).resolve()
             if not file.is_relative_to(source.resolve()) or not file.is_file() or sha256(file) != expected["sha256"]:
                 return None, f"旧产物缺失或内容变化：{relative}"
-        return checkpoint, "阶段依赖、配置与全部产物哈希匹配"
+        return checkpoint, "处理依赖、配置与全部产物哈希匹配"
     except (OSError, ValueError, KeyError, TypeError) as exc:
         return None, f"旧检查点不可用：{exc}"
 
@@ -446,7 +446,7 @@ def perform_stage(stage: int, cfg: dict, run: Path, inputs: dict, manifest: dict
         handler.setFormatter(logging.Formatter("%(levelname)s %(message)s"))
         logging.getLogger().addHandler(handler)
         try:
-            LOG.info("Stage %d %s：%s", stage, STAGE_NAMES[stage - 1], row["cache_check"])
+            LOG.info("工作流 %s：%s", STAGE_NAMES[stage - 1], row["cache_check"])
             with redirect_stdout(log), redirect_stderr(log):
                 if checkpoint is not None:
                     copy_cached_stage(source, run, checkpoint)
@@ -467,7 +467,7 @@ def perform_stage(stage: int, cfg: dict, run: Path, inputs: dict, manifest: dict
     record = {**row, "fingerprint": digest, "dependency_snapshot": snapshot,
               "configuration_sha256": sha256(run / "pipeline_config.json"), "artifacts": output_manifest(run, paths)}
     write_json(run / "reports" / f"stage_{stage}_checkpoint.json", record)
-    LOG.info("Stage %d 完成：%s，%.3f 秒。", stage, row["status"], row["runtime_seconds"])
+    LOG.info("工作流 %s 完成：%s，%.3f 秒。", STAGE_NAMES[stage - 1], row["status"], row["runtime_seconds"])
 
 
 def run_pipeline(config_path: Path, resume: str | Path | None = None) -> dict:
@@ -491,7 +491,7 @@ def run_pipeline(config_path: Path, resume: str | Path | None = None) -> dict:
         check_started = time.perf_counter()
         if enabled[0]:
             row["status"] = "running"
-        # 关闭 Stage 1 独立详细报告时，仍执行必要输入安全检查，不能绕过缺失位姿/深度单位。
+        # 关闭独立输入检查报告时，仍执行必要输入安全检查，不能绕过缺失位姿/深度单位。
         inputs, manifest = inspect_inputs(cfg)
         report.update(input_files=manifest, pose_sources=inputs["pose_sources"], coordinate_frame=inputs["coordinate_frame"],
                       pose_convention="T_world_camera", translation_unit="m", selected_frames=inputs["selected_frames"],
@@ -533,9 +533,9 @@ def run_pipeline(config_path: Path, resume: str | Path | None = None) -> dict:
         for pending in report["stages"][:5]:
             if pending["status"] == "pending":
                 pending["status"] = "blocked"
-        LOG.error("Pipeline 停止于 Stage %d：%s", row["stage"], report["error"])
+        LOG.error("Pipeline 停止于 %s：%s", row["name"], report["error"])
     finally:
-        # 最小审计报告始终写出；enable_report 控制 Stage 6 的汇总统计。
+        # 最小审计报告始终写出；enable_report 控制汇总统计。
         final = report["stages"][5]
         if final["enabled"]:
             report["summary"] = {r["name"]: r.get("statistics", {}) for r in report["stages"][1:5]}

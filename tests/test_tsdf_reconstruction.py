@@ -1,4 +1,4 @@
-"""阶段 4D：真实 Open3D TSDF 的离线小平面实验与失败保护。"""
+"""TSDF 重建测试：真实 Open3D 的离线小平面实验与失败保护。"""
 
 from contextlib import redirect_stderr
 import csv

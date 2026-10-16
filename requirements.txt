@@ -1,10 +1,10 @@
-# 当前 .venv 已验证可导入的版本（Python 3.14.4 / Windows 11）。
+# Windows 11 / Python 3.14 环境验证的依赖版本。
 pyrealsense2==2.59.1.11053
 opencv-python==5.0.0.93
 numpy==2.5.4
-# 保留项目已有依赖；阶段 1 脚本不使用 Open3D。
+# 点云处理、RGB-D 里程计、Pose Graph 与 TSDF 重建。
 open3d==0.20.0
-# 阶段 4A：保存相机轨迹图。
+# 保存相机轨迹与诊断图。
 matplotlib==3.11.2
-# 阶段 5B：真实三角网格与平面求交，当前 .venv 中已安装。
+# 三角网格与平面求交，用于可选 SVG 切片。
 trimesh==5.1.1

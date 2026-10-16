@@ -1,4 +1,4 @@
-"""阶段 4D：Open3D CPU/CUDA VoxelBlockGrid TSDF 离线彩色 Mesh 重建。
+"""TSDF 重建：使用 Open3D CPU/CUDA VoxelBlockGrid 融合 RGB-D，提取彩色 Mesh。
 
 统一输入是 T_world_camera；官方 tensor integrate 的外参是其逆 T_camera_world。
 不优化位姿、不修补 Mesh、不采集相机或机器人数据。
@@ -50,7 +50,7 @@ def check_motion(poses, ids, max_translation, max_rotation):
 
 
 def load_rgbd(dataset, i, metadata, min_depth, max_depth):
-    """沿用阶段 3 的图像/内参/单位约定；TSDF 需要 RGBDImage，不能用点云代替。"""
+    """沿用 RGB-D 加载器的图像、内参与深度单位约定；TSDF 需要 RGBDImage，不能用点云代替。"""
     color_path, depth_path = [dataset / kind / f"{i:06d}.png" for kind in ("color", "depth")]
     color_bgr = cv2.imread(str(color_path), cv2.IMREAD_COLOR)
     depth = cv2.imread(str(depth_path), cv2.IMREAD_UNCHANGED)

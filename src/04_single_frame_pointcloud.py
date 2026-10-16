@@ -1,4 +1,4 @@
-"""阶段 3：使用一对已对齐的 RGB-D 图片生成米制彩色点云。"""
+"""单帧点云：使用一对已对齐的 RGB-D 图片生成米制彩色点云。"""
 
 import argparse
 import json
@@ -15,7 +15,7 @@ DEFAULT_OUTPUT = PROJECT_ROOT / "output/pointcloud/single_frame.ply"
 
 
 def load_intrinsics(path):
-    """按阶段 2B 实际生成的 JSON 结构读取并验证内参和深度单位。"""
+    """按 RGB-D 提取器生成的 JSON 结构读取并验证内参和深度单位。"""
     if not path.is_file():
         raise FileNotFoundError(f"找不到相机内参文件：{path}")
     metadata = json.loads(path.read_text(encoding="utf-8"))
@@ -37,11 +37,11 @@ def load_intrinsics(path):
             and 0 <= metadata["cy"] < metadata["height"]):
         raise ValueError("主点 cx / cy 超出图片范围，请检查 Color 内参。")
     if metadata.get("intrinsics_unit") != "pixels":
-        raise ValueError("内参单位必须为 pixels，请检查阶段 2B 的 JSON。")
+        raise ValueError("内参单位必须为 pixels，请检查 camera_intrinsics.json。")
     if metadata.get("depth_scale_unit") != "meters_per_depth_unit":
         raise ValueError("depth_scale 单位必须为 meters_per_depth_unit，不能猜测深度单位。")
     if metadata.get("depth_aligned_to") != "color":
-        raise ValueError("JSON 未确认 Depth 对齐到 Color，请先检查阶段 2B 对齐结果。")
+        raise ValueError("JSON 未确认 Depth 对齐到 Color，请先检查 RGB-D 提取的深度对齐结果。")
     if metadata.get("depth_dtype") != "uint16":
         raise ValueError("JSON 中的原始深度类型必须为 uint16。")
     return metadata

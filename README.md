@@ -22,6 +22,20 @@ flowchart LR
 
 `run_handheld_reconstruction.py`统一编排轨迹估计、优化和重建，`run_pipeline.py`负责融合、模型处理及输出校验。所有结果使用独立目录，原始数据保持不变。
 
+各模块共同组成同一条工作流，按功能组织：
+
+| 功能 | 入口或模块 |
+| --- | --- |
+| 相机检查与 RGB-D 录制 | `src/01_test_camera.py`、`src/02_record_data.py` |
+| 对齐数据提取 | `src/03_extract_rgbd.py` |
+| 单帧检查与基础运动估计 | `src/04_single_frame_pointcloud.py`、`src/05_rgbd_odometry.py` |
+| 长序列轨迹与可靠约束检查 | `src/reconstruction/handheld_odometry.py`、`handheld_pose_graph.py` |
+| 统一相机位姿 | `src/reconstruction/pose_io.py`、`pose_utils.py` |
+| 点云融合与 TSDF 重建 | `src/reconstruction/merge_pointclouds.py`、`tsdf_reconstruction.py` |
+| 模型处理与可选切片 | `src/reconstruction/clean_mesh.py`、`mesh_to_svg.py` |
+
+运行日志使用处理功能名称。已有脚本路径、报告字段和恢复检查点文件名保持兼容；它们不表示开发版本或需要分别安装的项目。
+
 ## 安装
 
 验证环境为Windows 11、Python 3.14、Open3D 0.20.0。具体版本见[requirements.txt](requirements.txt)。相机录制和DB3回放还需要兼容的RealSense SDK与pyrealsense2。
