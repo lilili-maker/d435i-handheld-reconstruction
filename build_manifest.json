@@ -27,8 +27,8 @@
       "sha256": "cfc9c69417f10fbbc9d9e1fcfe1679a1dd453e0d8787cebacf66609a924fa602"
     },
     "CONTRIBUTING.md": {
-      "size_bytes": 1039,
-      "sha256": "3582f5d048f15b56327601af5910d170b472c9046494d6a262c5f4e74b047dfa"
+      "size_bytes": 1085,
+      "sha256": "34c337b54881bca5d6954b538cf0248b4e649a0c3895360180e7756bf073749f"
     },
     "docs/LIMITATIONS.md": {
       "size_bytes": 2575,
@@ -39,12 +39,12 @@
       "sha256": "17e6631cbd390a88863fc0504089d117c0cbb402beacb58894e1409328bc3bf0"
     },
     "docs/VALIDATION.md": {
-      "size_bytes": 2484,
-      "sha256": "ec29953693f0c831ba3f6f94c533fa0c40b0c45ecff690336f50e7ed9cc91763"
+      "size_bytes": 1964,
+      "sha256": "5e8c9e1394cbca86a10736ec3069eff63fdaf7fd0b7dadac434a51c1f677ba36"
     },
     "README.md": {
-      "size_bytes": 11088,
-      "sha256": "8dff3afc69276f92211a4558ebe3d9006a702e71537ea2e082fe9a7fe5f4289d"
+      "size_bytes": 10905,
+      "sha256": "d0ae2d957a46cdea56c7dace2d2eee75b99c856d2615c3d15f4cab961c246723"
     },
     "requirements.txt": {
       "size_bytes": 373,
