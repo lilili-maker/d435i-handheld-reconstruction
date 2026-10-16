@@ -1,44 +1,14 @@
 # D435i Handheld Reconstruction
 
-**手持Intel RealSense D435i围绕静止物体拍摄，将RGB-D序列重建为彩色点云和三维Mesh。**
+使用手持 Intel RealSense D435i 采集 RGB-D 序列，通过 RGB-D Odometry、Pose Graph 和 TSDF 融合生成彩色点云及三维 Mesh。
 
-项目提供从录制、数据提取、输入检查、相机轨迹估计，到Pose Graph优化、TSDF融合及模型检查的完整离线工作流，适用于家具等物体的实验性建模。
+主要入口为 `run_handheld_reconstruction.py`。数据录制和提取完成后，该入口执行输入检查、轨迹估计、约束验证、重建和报告输出；融合与模型处理复用 `run_pipeline.py`。
 
-> **存在重建误差。** 手持扫描可能出现累计漂移、拉伸、重影、碎片和缺面。运行完成或配准通过检查不等于模型准确。目前没有独立的实测精度标定，不能给出固定毫米误差或准确率，不适用于制造、计量或精密装配。
+长序列扫描仍可能出现轨迹漂移、表面重影、拉伸和缺面。目前没有独立实测标定结果，不能给出确定的毫米误差。建议先验证短序列，再扩大帧范围；生成模型用于实验性建模，不用于精密测量或制造。
 
-## 完整工作流
+## 环境与安装
 
-```mermaid
-flowchart LR
-    A[手持环绕录制RGB-D] --> B[对齐图片与时间戳]
-    B --> C[检查输入并选择连续帧]
-    C --> D[双向RGB-D Odometry]
-    D --> E[验证非相邻约束并优化轨迹]
-    E --> F[点云融合与TSDF]
-    F --> G[彩色场景Mesh]
-    G --> H[检查尺寸和重影]
-    H --> I[按本次坐标范围裁剪]
-```
-
-`run_handheld_reconstruction.py`统一编排轨迹估计、优化和重建，`run_pipeline.py`负责融合、模型处理及输出校验。所有结果使用独立目录，原始数据保持不变。
-
-各模块共同组成同一条工作流，按功能组织：
-
-| 功能 | 入口或模块 |
-| --- | --- |
-| 相机检查与 RGB-D 录制 | `src/01_test_camera.py`、`src/02_record_data.py` |
-| 对齐数据提取 | `src/03_extract_rgbd.py` |
-| 单帧检查与基础运动估计 | `src/04_single_frame_pointcloud.py`、`src/05_rgbd_odometry.py` |
-| 长序列轨迹与可靠约束检查 | `src/reconstruction/handheld_odometry.py`、`handheld_pose_graph.py` |
-| 统一相机位姿 | `src/reconstruction/pose_io.py`、`pose_utils.py` |
-| 点云融合与 TSDF 重建 | `src/reconstruction/merge_pointclouds.py`、`tsdf_reconstruction.py` |
-| 模型处理与可选切片 | `src/reconstruction/clean_mesh.py`、`mesh_to_svg.py` |
-
-运行日志使用处理功能名称。已有脚本路径、报告字段和恢复检查点文件名保持兼容；它们不表示开发版本或需要分别安装的项目。
-
-## 安装
-
-验证环境为Windows 11、Python 3.14、Open3D 0.20.0。具体版本见[requirements.txt](requirements.txt)。相机录制和DB3回放还需要兼容的RealSense SDK与pyrealsense2。
+已验证环境：Windows 11、Python 3.14、Open3D 0.20.0。依赖版本见 [requirements.txt](requirements.txt)。相机录制及 DB3 回放需要兼容的 RealSense SDK。
 
 ```powershell
 git clone https://github.com/lilili-maker/d435i-handheld-reconstruction.git
@@ -49,32 +19,11 @@ $env:PYTHONUTF8 = "1"
 $env:PYTHONIOENCODING = "utf-8"
 ```
 
-已有可用虚拟环境时，可以直接调用其中的Python。CPU即可完成重建；GPU是否可用取决于当前Open3D构建和运行环境，不能仅根据显卡型号判断。
+已有虚拟环境时，可直接使用其中的 Python。以下命令在仓库根目录执行。
 
-## 快速体验：不连接相机
+## 录制与提取
 
-仓库提供已知三面角的合成RGB-D生成器，用于验证完整软件流程。它不是家具扫描数据，也不能证明真实测量精度。
-
-```powershell
-$demoId = Get-Date -Format 'yyyyMMdd_HHmmss'
-$demoInputs = "output/demo_inputs_$demoId"
-$demoOutput = "output/demo_reconstruction_$demoId"
-
-.\.venv\Scripts\python.exe scripts/create_synthetic_demo.py --output $demoInputs
-.\.venv\Scripts\python.exe run_handheld_reconstruction.py `
-  --dataset "$demoInputs/synthetic_dataset" `
-  --start 0 --end 2 --step 1 --reference 0 `
-  --odometry-backend legacy --device CPU:0 --min-consistency 0.6 `
-  --min-loop-gap 50 --max-loop-candidates 0 --no-crop --output $demoOutput
-```
-
-该命令从图像实际计算Odometry并融合三帧。已知真值单独保存在`poses/camera.json`，标记为simulation，不作为估计结果输入。运行后按`handheld_report.json`中的路径打开场景Mesh。
-
-## 从拍摄到三维模型
-
-保持家具及背景静止，关闭RealSense Viewer等占用相机的程序。手持相机缓慢环绕，保留相邻视角重叠，并覆盖目标的不同高度。旋转椅应固定座面与底座，避免各部分相对运动。详见[拍摄指南](docs/SCANNING_GUIDE.md)。
-
-以下命令使用同一组变量贯穿录制、提取和检查：
+保持家具和背景静止，关闭 RealSense Viewer。相机缓慢移动，相邻视角保留足够重叠。旋转椅的座面与底座需要固定，避免扫描中发生相对转动。拍摄距离、速度和覆盖范围见[拍摄说明](docs/SCANNING_GUIDE.md)。
 
 ```powershell
 $scanId = Get-Date -Format 'yyyyMMdd_HHmmss'
@@ -83,16 +32,19 @@ $dataset = "data/extracted_$scanId"
 $analysis = "output/analysis_$scanId"
 $result = "output/handheld/scan_$scanId"
 
-# 录制窗口按q停止，等待文件正常关闭。
 .\.venv\Scripts\python.exe src/02_record_data.py --output $recording
 .\.venv\Scripts\python.exe src/03_extract_rgbd.py --input $recording --output $dataset
 .\.venv\Scripts\python.exe src/reconstruction/analyze_handheld_dataset.py `
   --dataset $dataset --output $analysis
 ```
 
-查看`dataset_analysis.json`的配对数量、问题帧、时间戳和候选连续区间，并查看`rgb_overview.png`。选择本次数据中实际存在、深度有效、RGB清楚的短连续区间。
+录制窗口按 q 停止，等待文件关闭后再提取。默认优先使用 640×480、30 FPS 的 Color/Depth；IMU 按设备支持情况录制，当前重建未使用视觉惯性融合。
 
-例如，确认10～60帧符合条件后运行：
+检查 `dataset_analysis.json` 中的帧配对、时间戳、深度有效率和候选连续区间，结合 `rgb_overview.png` 选择 RGB 清晰、深度稳定的短区间。输入检查只验证数据基本条件，不代表整段轨迹可靠。
+
+## 重建
+
+例如，确认第 10～60 帧可用后运行：
 
 ```powershell
 .\.venv\Scripts\python.exe run_handheld_reconstruction.py `
@@ -102,60 +54,32 @@ $result = "output/handheld/scan_$scanId"
   --fusion-step 1 --no-crop --output $result
 ```
 
-10～60是命令示例，不是适用于每次扫描的固定范围。参考帧必须属于采样列表，建议使用RGB清楚、有效深度充足的帧。`--no-crop`用于尚未确认裁剪范围的输入，生成的是场景Mesh。
+帧范围应按本次数据调整。`--reference` 指定临时世界坐标系，必须属于采样列表；程序从参考帧向两个方向分别跟踪。尚未确定裁剪范围时使用 `--no-crop`，输出场景 Mesh。
 
-先检查短序列的形状和尺寸，再扩大到本次数据中已检查的连续区间。输入质量通过只代表图片、时间和深度满足基本条件，不能证明整段轨迹可靠。
-
-录制优先使用640×480、30 FPS的Color/Depth，并按设备支持情况尝试记录IMU。本流程使用RGB-D估计运动，没有进行视觉惯性融合。
-
-## 已有数据与输入格式
-
-已有提取的RGB-D时，可以直接从输入检查和重建命令开始，显式填写`--dataset`、帧范围、参考帧、`--no-crop`及输出目录。
-
-```text
-data/extracted_scan/
-  color/000000.png ...
-  depth/000000.png ...       # 原始二维uint16
-  camera_intrinsics.json
-  timestamps.csv
-```
-
-| 输入 | 要求 |
-| --- | --- |
-| RGB与Depth | 同编号一一对应；Depth已对齐Color，尺寸与内参匹配 |
-| 相机参数 | `width,height,fx,fy,cx,cy,depth_scale` |
-| 参数声明 | `intrinsics_unit=pixels`、`depth_scale_unit=meters_per_depth_unit`、`depth_dtype=uint16`、`depth_aligned_to=color` |
-| 时间戳CSV | `frame_id,color_timestamp_ms,depth_timestamp_ms` |
-
-Depth使用原始uint16，不保存伪彩色或归一化深度。SDK比例为米/原始深度单位，Open3D的深度除数取倒数，例如0.001对应1000。程序读取实际文件转换，不按示例值覆盖。
-
-DB3必须是兼容SDK录制的RealSense数据。普通SQLite文件改扩展名不能作为输入。仓库不附真实录制、RGB-D长序列或实验室模型；请使用自己的数据。
-
-## 参数与计算开销
+初次运行建议使用 Legacy CPU 后端。Tensor 后端和 GPU 可在同一短区间进行比较；速度和效果取决于数据及 Open3D 构建。`--device auto` 在 CUDA 不可用时退回 CPU，显式指定不可用的 `CUDA:0` 则报错。
 
 | 参数 | 含义 |
 | --- | --- |
-| `--start/--end/--step` | 闭区间采样；step须为正且整除end-start |
-| `--reference` | 临时世界坐标系；分别向前、向后跟踪，当前不自动选择最优参考帧 |
-| `--odometry-backend legacy/tensor` | 官方Open3D两种RGB-D后端，默认tensor |
-| `--device auto/CPU:0/CUDA:0` | 自动选择或显式要求设备；Legacy Odometry使用CPU |
-| `--cpu-threads` | CPU线程数，默认4 |
-| `--min-consistency` | 双向深度重投影支持门槛，默认0.4；本文示例显式使用0.6 |
-| `--max-translation/--max-rotation` | 每次注册的运动筛查，默认0.15米/15度 |
-| `--fusion-step` | 每N个有效跟踪帧融合一次，默认1；不改变Odometry采样 |
-| `--skip-pointcloud` | 省略独立点云合并，仍生成彩色Mesh |
-| `--max-loop-candidates` | 非相邻约束候选检查上限；0关闭候选检查 |
-| `--max-skip-frames` | 默认0，失败即停该方向；允许跳帧时仍必须重新配准通过检查 |
-| `--max-recovery-gap-ms` | 跳帧候选距最后可靠帧的时间差上限，默认200毫秒 |
-| `--icp-refinement` | 默认off；geometry仅用于显式诊断 |
+| `--start`、`--end`、`--step` | 闭区间采样；step 为正且整除 end-start |
+| `--reference` | 参考帧，当前需手动选择 |
+| `--odometry-backend` | `legacy` 或 `tensor`，默认 tensor |
+| `--cpu-threads` | CPU 线程数，默认 4 |
+| `--min-consistency` | 双向深度重投影支持门槛，默认 0.4；上例取 0.6 |
+| `--max-translation`、`--max-rotation` | 相对运动筛查阈值，默认 0.15 m、15° |
+| `--fusion-step` | 每 N 个有效跟踪帧融合一次，默认 1 |
+| `--skip-pointcloud` | 跳过独立点云合并，仍生成 Mesh |
+| `--max-loop-candidates` | 非相邻约束候选数上限；0 关闭检查 |
+| `--max-skip-frames` | 默认 0；允许跳帧时仍需重新配准通过检查 |
+| `--max-recovery-gap-ms` | 恢复候选距最后可靠帧的时间差上限，默认 200 ms |
+| `--icp-refinement` | 默认 off；geometry 用于显式诊断 |
 
-资源有限时，可以在已验证区间使用`--fusion-step 3 --skip-pointcloud`减少融合负担。Tensor可能更快，但不保证更准，建议先在相同短区间比较后端。
+`--min-consistency 0.4` 表示支持门槛，不是 40% 的位姿准确率。降低阈值可能接纳错误配准。
 
-`--device auto`仅在Open3D实际支持CUDA时使用GPU，否则记录CPU回退；显式要求不可用的CUDA设备会报错。**0.4门槛不是40%准确率**，降低门槛可能接纳更差的配准，提高通过帧数不能作为唯一目标。
+计算量较大时，可使用 `--fusion-step 3 --skip-pointcloud` 减少融合点数和输出开销，Odometry 采样不变。手持入口生成的融合配置采用深度范围 0.2～3 m、TSDF 体素 0.01 m、截断距离 0.04 m；其他配置见 `run_pipeline.py --help` 及生成的 JSON。
 
-当前手持入口生成的融合配置使用深度范围0.2～3米、TSDF体素0.01米和截断距离0.04米。需要调整时，应检查生成的配置及`run_pipeline.py`接口；这些数值不是设备精度保证。
+## 检查结果
 
-## 输出与模型检查
+输出目录独立创建，已有数据和模型不会被覆盖。
 
 ```text
 output/handheld/<本次运行>/
@@ -171,48 +95,79 @@ output/handheld/<本次运行>/
     trajectory_comparison.png
   models/run_0001/
     mesh/scene_mesh.ply
-    pointcloud/merged.ply       # 未使用skip-pointcloud时
-    reports/...
+    pointcloud/merged.ply       # 使用 --skip-pointcloud 时不生成
+    reports/
     pipeline_report.json
   pipeline_config.json
   model_quality_report.json
 ```
 
-实际路径以报告为准。`status=complete`表示有效连通子段完成处理；同时检查`tracking_complete`、`tracking.valid_frame_count`、`actual_reconstruction_frame_count`、`fusion_frame_ids`及失败记录，区分请求帧数与实际融合帧数。
+先核对 `handheld_report.json` 中的 `tracking_complete`、`tracking.valid_frame_count`、`actual_reconstruction_frame_count` 和 `fusion_frame_ids`。`status=complete` 也可能仅表示成功跟踪的子段已完成融合，应以实际帧数和失败记录为准。
 
-在CloudCompare或Open3D中打开实际`scene_mesh.ply`，观察双层表面、断裂、悬浮碎片和整体比例，并用实物测量检查尺寸。不要通过缩放、平滑或补洞掩盖位姿问题。
+在 CloudCompare 或 Open3D 中打开 `scene_mesh.ply`，检查整体比例、双层表面、断裂和悬浮碎片，并与实物测量比较尺寸。裁剪前应在本次模型坐标系中确认 AABB，参数见 `src/reconstruction/clean_mesh.py --help`。手持入口启用裁剪时还会比较指定基线；没有基线模型时，可先重建，再单独裁剪。
 
-需要裁剪家具时，先在本次世界坐标系中确认AABB，再使用`src/reconstruction/clean_mesh.py --help`查看参数。不要复用另一次扫描的裁剪框。统一手持入口启用裁剪时还会比较指定的基线模型；没有相应基线时，可先生成场景Mesh，再单独裁剪。
+## 跟踪失败与坐标约定
 
-## 失败处理与误差边界
-
-失跟踪时读取`tracking/registration_quality.json`的source、target和failure_reasons。默认停止失败方向，未估计帧不参与融合，不使用单位矩阵或上一帧位姿补齐。可以把后续连续片段写入新目录独立重建，但没有可靠相对变换时不能直接叠加。
+配准失败的帧和原因写入 `tracking/registration_quality.json`。默认停止失败方向的跟踪，未估计帧不参与融合，也不使用单位矩阵或上一帧位姿补齐。后续连续片段可以独立重建；未建立可靠相对变换前，不能直接合并不同片段。
 
 ```text
-T_world_camera：Camera-to-World，平移单位米
+T_world_camera：Camera-to-World，平移单位为米
 P_world = T_world_camera @ P_camera
 P_target = T_source_to_target @ P_source
 C_target = C_source @ inverse(T_source_to_target)
 TSDF extrinsic = inverse(T_world_camera)
 ```
 
-真实手持轨迹标记为`rgbd_odometry`。没有可靠非相邻约束时，链式Pose Graph不能消除累计漂移；优化成功也不证明真实位姿准确。金属、黑色材料、细杆、遮挡和物体运动都会影响结果。详见[误差与限制](docs/LIMITATIONS.md)。
+位姿来源标记为 `rgbd_odometry`。没有可靠非相邻约束时，Pose Graph 无法消除链式轨迹的累计漂移；优化完成不等于实际位姿准确。金属反光、黑色材料、细杆、遮挡和物体运动也是常见误差来源，详见[限制说明](docs/LIMITATIONS.md)。
 
-## 测试与文档
+## 已有数据格式
+
+已提取的 RGB-D 可以直接用于输入检查和重建。
+
+```text
+data/extracted_scan/
+  color/000000.png ...
+  depth/000000.png ...
+  camera_intrinsics.json
+  timestamps.csv
+```
+
+RGB 与 Depth 按同编号配对，Depth 应对齐到 Color，分辨率与内参一致。深度 PNG 使用原始二维 `uint16`。
+
+内参文件包含 `width`、`height`、`fx`、`fy`、`cx`、`cy`、`depth_scale`，并声明 `intrinsics_unit=pixels`、`depth_scale_unit=meters_per_depth_unit`、`depth_dtype=uint16`、`depth_aligned_to=color`。时间戳 CSV 包含 `frame_id,color_timestamp_ms,depth_timestamp_ms`。
+
+RealSense depth scale 的单位为 m/unit，Open3D 使用其倒数作为深度除数。例如 0.001 m/unit 对应 Open3D depth_scale=1000。程序按文件实际值转换。
+
+仓库不附真实长序列或实验室模型。DB3 输入应来自兼容 SDK 的 RealSense 录制文件。
+
+## 离线示例与测试
+
+无需相机即可用已知三面角的合成 RGB-D 检查软件流程：
 
 ```powershell
+$demoId = Get-Date -Format 'yyyyMMdd_HHmmss'
+$demoInputs = "output/demo_inputs_$demoId"
+$demoOutput = "output/demo_reconstruction_$demoId"
+
+.\.venv\Scripts\python.exe scripts/create_synthetic_demo.py --output $demoInputs
+.\.venv\Scripts\python.exe run_handheld_reconstruction.py `
+  --dataset "$demoInputs/synthetic_dataset" `
+  --start 0 --end 2 --step 1 --reference 0 `
+  --odometry-backend legacy --device CPU:0 --min-consistency 0.6 `
+  --min-loop-gap 50 --max-loop-candidates 0 --no-crop --output $demoOutput
+
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-当前包含130项离线测试，覆盖变换方向、双后端、Pose Graph、已知几何的TSDF融合、失败停止、受限恢复、RGB颜色、模型有效性及防覆盖。[GitHub Actions](https://github.com/lilili-maker/d435i-handheld-reconstruction/actions)在Windows环境执行测试和合成数据的完整重建。
+示例从图像估计运动并融合三帧，已知位姿另存于 `poses/camera.json`，标记为 simulation，不作为估计输入。合成结果用于验证算法实现，不能替代真实扫描精度评估。
 
-- [拍摄指南](docs/SCANNING_GUIDE.md)
-- [误差与限制](docs/LIMITATIONS.md)
-- [验证范围与合成结果](docs/VALIDATION.md)
-- [参与开发](CONTRIBUTING.md)
+现有 130 项离线测试，覆盖变换方向、两个 Odometry 后端、Pose Graph、TSDF、失败处理及输出检查。[GitHub Actions](https://github.com/lilili-maker/d435i-handheld-reconstruction/actions)执行测试和合成重建。
 
-照片或点云转人工描边SVG，可参见[3DSVG Studio](https://github.com/lilili-maker/3dsvg-studio)。
+- [拍摄说明](docs/SCANNING_GUIDE.md)
+- [实验与验证结果](docs/VALIDATION.md)
+- [贡献说明](CONTRIBUTING.md)
+- [3DSVG Studio：照片或点云转 SVG 描边底稿](https://github.com/lilili-maker/3dsvg-studio)
 
 ## 许可
 
-当前未附开源许可证。代码与数据的复制、修改及再分发范围以仓库所有者的授权为准。
+仓库尚未附开源许可证。代码与数据的复制、修改及再分发需获得相应授权。

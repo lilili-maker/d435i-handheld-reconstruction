@@ -23,8 +23,8 @@
       "sha256": "3a0384a06cab8a39b1d563a0b2802236e8f53fbba10c4fd8029ca1392095951a"
     },
     ".gitignore": {
-      "size_bytes": 158,
-      "sha256": "cfc9c69417f10fbbc9d9e1fcfe1679a1dd453e0d8787cebacf66609a924fa602"
+      "size_bytes": 367,
+      "sha256": "97418ff1778700dd54529874b2f25cefc8407fa07d78c2fe57697a1a049361a1"
     },
     "CONTRIBUTING.md": {
       "size_bytes": 1085,
@@ -43,8 +43,8 @@
       "sha256": "5e8c9e1394cbca86a10736ec3069eff63fdaf7fd0b7dadac434a51c1f677ba36"
     },
     "README.md": {
-      "size_bytes": 11804,
-      "sha256": "b3b8c9fb2f261a8a898f7c8e7a75c97521567f645f7b810fa0a270c8fe71e8fc"
+      "size_bytes": 9138,
+      "sha256": "b9bf609f8ee67d79020e7adfe6ada7d40cb2d14fd268a7bc029ce9df2356aa97"
     },
     "requirements.txt": {
       "size_bytes": 331,
