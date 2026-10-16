@@ -39,8 +39,8 @@
       "sha256": "17e6631cbd390a88863fc0504089d117c0cbb402beacb58894e1409328bc3bf0"
     },
     "docs/VALIDATION.md": {
-      "size_bytes": 2242,
-      "sha256": "546fd5416d40bde4da7831f4a2ec26697d65f234c9a039bb56372dcd0f857a8e"
+      "size_bytes": 2484,
+      "sha256": "ec29953693f0c831ba3f6f94c533fa0c40b0c45ecff690336f50e7ed9cc91763"
     },
     "README.md": {
       "size_bytes": 11088,
@@ -163,8 +163,8 @@
       "sha256": "f9e77fb57decfbe1b59f9909ff43c9826cabec0141393c57bc31629936952e7e"
     },
     "tests/test_pipeline.py": {
-      "size_bytes": 13193,
-      "sha256": "36fc115cdc698c112c1c06537ebfa8de2f78c9e742b61d36d6237db9146f8beb"
+      "size_bytes": 13301,
+      "sha256": "b45b726f473a0b3a936ab331363e919f7c4fb938c452f98c9b0c843c884b5001"
     },
     "tests/test_pose_interface.py": {
       "size_bytes": 11977,

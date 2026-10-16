@@ -141,7 +141,8 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(report["mesh_origin"], "external_mesh_source_not_inferred")
         processed = pipeline.read_json(run / "reports/mesh_processing.json")
         self.assertEqual(processed["mode"], "clean_only")
-        self.assertEqual(processed["input"], str(mesh))
+        # Windows临时目录可能使用8.3短路径；验证同一文件，而非路径拼写。
+        self.assertTrue(Path(processed["input"]).samefile(mesh))
         self.assertEqual(report["stages"][2]["status"], "disabled")
 
     def test_crop_empty_stops_slicing(self):
